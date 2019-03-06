@@ -1,0 +1,95 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openstack-cloud-controller-manager-config
+  namespace: {{ namespace }}
+data:
+  cloudconfig: |
+    [Global]
+    auth-url={{ auth_url }}
+    user-id={{ trustee_user_id }}
+    password={{ trustee_password }}
+    trust-id={{ trust_id }}
+    [LoadBalancer]
+    use-octavia=yes
+    subnet-id={{ subnet_id }}
+    floating-network-id={{ public_network_id }}
+    create-monitor=no
+    [BlockStorage]
+    bs-version=v2
+  kubeconfig: |
+    apiVersion: v1
+    kind: Config
+    preferences: {}
+    clusters:
+      - name: {{ namespace }}
+        cluster:
+          server: "https://kube-apiserver:6443"
+          certificate-authority: "/etc/kubernetes/pki/ca/tls.crt"
+    users:
+      - name: openstack-cloud-controller-manager
+        user:
+          client-certificate: "/etc/kubernetes/pki/tls.crt"
+          client-key: "/etc/kubernetes/pki/tls.key"
+    contexts:
+      - name: openstack-cloud-controller-manager@{{ namespace }}
+        context:
+          cluster: {{ namespace }}
+          user: openstack-cloud-controller-manager
+    current-context: openstack-cloud-controller-manager@{{ namespace }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openstack-cloud-controller-manager
+  namespace: {{ namespace }}
+  labels:
+    app: openstack-cloud-controller-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openstack-cloud-controller-manager
+  template:
+    metadata:
+      labels:
+        app: openstack-cloud-controller-manager
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Always
+      containers:
+        - name: openstack-cloud-controller-manager
+          image: docker.io/k8scloudprovider/openstack-cloud-controller-manager:{{ cloud_provider_tag }}
+          args:
+            - /bin/openstack-cloud-controller-manager
+            - --v=2
+            - --cloud-config=/etc/kubernetes/cloudconfig
+            - --cloud-provider=openstack
+            - --cluster-name={{ namespace }}
+            - --tls-cert-file=/etc/kubernetes/pki/tls.crt
+            - --tls-private-key-file=/etc/kubernetes/pki/tls.key
+            - --kubeconfig=/etc/kubernetes/kubeconfig
+            - --leader-elect=false
+            - --use-service-account-credentials=true
+          volumeMounts:
+            - mountPath: /etc/kubernetes/pki/ca
+              name: ca-cert
+              readOnly: true
+            - mountPath: /etc/kubernetes/pki
+              name: cloud-controller-manager-cert
+              readOnly: true
+            - mountPath: /etc/kubernetes
+              name: config
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: openstack-cloud-controller-manager-config
+        - name: cloud-controller-manager-cert
+          secret:
+            secretName: cloud-controller-manager-cert
+        - name: ca-cert
+          secret:
+            secretName: ca

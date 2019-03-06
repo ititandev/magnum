@@ -309,7 +309,7 @@ class Validator(object):
 class K8sValidator(Validator):
 
     supported_network_drivers = ['flannel', 'calico']
-    supported_server_types = ['vm', 'bm']
+    supported_server_types = ['vm', 'bm', 'container']
     allowed_network_drivers = (
         CONF.cluster_template.kubernetes_allowed_network_drivers)
     default_network_driver = (

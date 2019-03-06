@@ -96,6 +96,15 @@ def get_fixed_network_name(context, network):
         return network
 
 
+def delete_port_by_tags(context, tags):
+    n_client = clients.OpenStackClients(context).neutron()
+    filter = {'tags': tags}
+    ports = n_client.list_ports(**filter)
+
+    for port in ports.get("ports", []):
+        n_client.delete_port(port.get("id"))
+
+
 def get_subnet(context, subnet, source, target):
     nets = []
     n_client = clients.OpenStackClients(context).neutron()
