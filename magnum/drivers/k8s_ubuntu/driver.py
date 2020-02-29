@@ -201,7 +201,7 @@ class Driver(driver.HeatDriver):
         """
         ext_net_id = cluster_template.external_network_id or "public"
         if not uuidutils.is_uuid_like(ext_net_id):
-            ext_net_id = neutron.get_network_id(context, ext_net_id)
+            ext_net_id = neutron.get_external_network_id(context, ext_net_id)
 
         network_client = clients.OpenStackClients(context).neutron()
         vip_port = None
@@ -304,7 +304,7 @@ class Driver(driver.HeatDriver):
         self.public_network_id = (
             cluster_template.external_network_id or "public")
         if not uuidutils.is_uuid_like(self.public_network_id):
-            self.public_network_id = neutron.get_network_id(
+            self.public_network_id = neutron.get_external_network_id(
                 context,
                 self.public_network_id
             )
