@@ -26,15 +26,24 @@ class KubeCtl(object):
                 cmd = "{} {}".format(self.kubectl, command)
 
         try:
-            return subprocess.check_output(cmd, shell=True)
-        except subprocess.CalledProcessError:
-            if print_error:
-                if "delete" in command:
-                    LOG.warning("K8s: Delete failed.")
-                else:
-                    exc_msg = "Failed to execute kubectl command, cmd=%s" % cmd
-                    LOG.error(exc_msg)
-                    raise exception.MagnumException(message=exc_msg)
+            r = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+            return r
+        # except subprocess.CalledProcessError as ex:
+        #     # if print_error:
+        #     if "delete" in command:
+        #         LOG.warning("K8s: Delete failed.")
+        #     else:
+        #         exc_msg = "Failed to execute kubectl command, cmd={}, err={}".format(cmd, ex.stderr.decode())
+        #         LOG.error(exc_msg)
+        #         raise exception.MagnumException(message=exc_msg)
+        except Exception as ex:
+            # if print_error:
+            if "delete" in command:
+                LOG.warning("K8s: Delete failed.")
+            else:
+                exc_msg = "Failed to execute kubectl command, cmd={},\n STDOUT/STDERR={}".format(cmd, ex.stdout.decode())
+                LOG.error(exc_msg)
+                raise exception.MagnumException(message="Failed to execute kubectl command")
 
     def apply(self, *args, **kwargs):
         return self.execute('apply', *args, **kwargs)
