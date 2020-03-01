@@ -161,9 +161,9 @@ class Driver(driver.HeatDriver):
             cluster,
             context=context
         )
-        admin_cert_encoded = base64.b64encode(admin_cert.get_certificate())
+        admin_cert_encoded = base64.b64encode(admin_cert.get_certificate()).decode()
         admin_key_encoded = base64.b64encode(
-            admin_cert.get_decrypted_private_key())
+            admin_cert.get_decrypted_private_key()).decode()
 
         split_ret = netutils.urlsplit(cluster.api_address)
         external_apiserver_address = split_ret.netloc.split(":")[0]
@@ -313,8 +313,8 @@ class Driver(driver.HeatDriver):
             cluster,
             context=context
         )
-        ca_cert_encoded = base64.b64encode(ca_cert.get_certificate())
-        ca_key_encoded = base64.b64encode(ca_cert.get_decrypted_private_key())
+        ca_cert_encoded = base64.b64encode(ca_cert.get_certificate()).decode()
+        ca_key_encoded = base64.b64encode(ca_cert.get_decrypted_private_key()).decode()
 
         cloud_provider_enabled = strutils.bool_from_string(
             cluster.labels.get("cloud_provider_enabled", "true")
@@ -336,6 +336,7 @@ class Driver(driver.HeatDriver):
             "cloud_provider_tag": cluster.labels.get("cloud_provider_tag",
                                                      "v1.15.0")
         }
+        LOG.info("*** Params: %s" % str(params))
 
         # Keystone related info.
         osc = clients.OpenStackClients(context)
