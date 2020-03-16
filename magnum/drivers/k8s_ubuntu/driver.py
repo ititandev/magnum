@@ -456,7 +456,10 @@ class Driver(driver.HeatDriver):
         if keystone.is_octavia_enabled():
             LOG.info("Starting to delete Service loadbalancers for cluster %s",
                      cluster.uuid)
-            octavia.delete_loadbalancers(context, cluster)
+            try:
+                octavia.delete_loadbalancers(context, cluster)
+            except Exception:
+                LOG.info("Error when delete loadbalancers")
 
     def delete_cluster(self, context, cluster):
         LOG.info("Starting to delete cluster %s", cluster.uuid)
