@@ -269,7 +269,8 @@ def decrypt_key(encrypted_key, password):
 
     decrypted_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
-        format=serialization.PrivateFormat.PKCS8,
+        # format=serialization.PrivateFormat.PKCS8,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption()
     )
     return decrypted_pem

@@ -1,0 +1,130 @@
+heat_template_version: 2018-08-31
+
+parameters:
+  ssh_key_name:
+    type: string
+    description: name of ssh key to be provisioned on our server
+    default: ""
+  external_network:
+    type: string
+    description: uuid of a network to use for floating ip addresses
+    default: ""
+  floating_ip_enabled:
+    type: boolean
+    default: false
+  fixed_network:
+    type: string
+    description: uuid/name of an existing network to use to provision machines
+    default: ""
+  fixed_subnet:
+    type: string
+    description: uuid/name of an existing subnet to use to provision machines
+    default: ""
+  server_image:
+    type: string
+    description: glance image used to boot the server
+  server_flavor:
+    type: string
+    description: flavor to use when booting the server
+  number_of_workers:
+    type: number
+    description: how many kubernetes workers to spawn
+    default: 1
+  cluster_id:
+    type: string
+    description: identifier for the cluster this template is generating
+  ca_content:
+    type: string
+    hidden: true
+    description: The cluster CA certificate
+  cakey_content:
+    type: string
+    hidden: true
+    description: The cluster CA key
+  bootstrap_token:
+    type: string
+    hidden: true
+    description: Kubelet bootstrap token
+  apiserver_address:
+    type: string
+    description: IP address of kube-apiserver service
+  cluster_dns_service_ip:
+    type: string
+    description: IP address of the cluster DNS service
+  kubernetes_version:
+    type: string
+    description: Kubernetes version
+  wait_condition_timeout:
+    type: number
+    description: >
+      Timeout for the Wait Conditions. This param is not passed from anywhere.
+    default: 6000
+  pods_network_cidr:
+    type: string
+    description: The IP pool/range for the Pod
+  cloud_provider_enabled:
+    type: boolean
+  auth_url:
+    type: string
+  trustee_user_id:
+    type: string
+  trustee_password:
+    type: string
+  trust_id:
+    type: string
+
+resources:
+  worker_nodes_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: icmp
+        - protocol: tcp
+          port_range_min: 1
+          port_range_max: 65535
+
+  kube_workers:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: {get_param: number_of_workers}
+      resource_def:
+        type: kubeworker.yaml
+        properties:
+          name:
+            list_join:
+              - '-'
+              - [{ get_param: 'OS::stack_name' }, 'worker', '%index%']
+          server_image: {get_param: server_image}
+          server_flavor: {get_param: server_flavor}
+          ssh_key_name: {get_param: ssh_key_name}
+          ca_content: {get_param: ca_content}
+          cakey_content: {get_param: cakey_content}
+          cluster_id: {get_param: cluster_id}
+          apiserver_address: {get_param: apiserver_address}
+          cluster_dns_service_ip: {get_param: cluster_dns_service_ip}
+          kubernetes_version: {get_param: kubernetes_version}
+          bootstrap_token: {get_param: bootstrap_token}
+          wait_condition_timeout: {get_param: wait_condition_timeout}
+          fixed_network: {get_param: fixed_network}
+          fixed_subnet: {get_param: fixed_subnet}
+          external_network: {get_param: external_network}
+          floating_ip_enabled: {get_param: floating_ip_enabled}
+          worker_secgroup: {get_resource: worker_nodes_secgroup}
+          pods_network_cidr: {get_param: pods_network_cidr}
+          cloud_provider_enabled: {get_param: cloud_provider_enabled}
+          auth_url: {get_param: auth_url}
+          trustee_user_id: {get_param: trustee_user_id}
+          trustee_password: {get_param: trustee_password}
+          trust_id: {get_param: trust_id}
+
+outputs:
+  kube_minions_private:
+    value: {get_attr: [kube_workers, kube_minion_ip]}
+    description: >
+      This is a list of the "private" IP addresses of all the Kubernetes workers.
+
+  kube_minions:
+    value: {get_attr: [kube_workers, kube_minion_external_ip]}
+    description: >
+      This is a list of the "public" IP addresses of all the Kubernetes workers.
+

@@ -1,0 +1,140 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-controller-manager-kubeconfig
+  namespace: {{ namespace }}
+data:
+  kubeconfig: |
+    apiVersion: v1
+    kind: Config
+    preferences: {}
+    clusters:
+      - name: {{ namespace }}
+        cluster:
+          server: "https://kube-apiserver:6443"
+          certificate-authority: "/srv/kubernetes/pki/ca/tls.crt"
+    users:
+      - name: kube-controller-manager
+        user:
+          client-certificate: "/srv/kubernetes/pki/kube-controller-manager/tls.crt"
+          client-key: "/srv/kubernetes/pki/kube-controller-manager/tls.key"
+    contexts:
+      - name: kube-controller-manager@{{ namespace }}
+        context:
+          cluster: {{ namespace }}
+          user: kube-controller-manager
+    current-context: kube-controller-manager@{{ namespace }}
+
+{% if cloud_provider_enabled %}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloud-config
+  namespace: {{ namespace }}
+data:
+  cloud-config: |
+    [Global]
+    auth-url={{ auth_url }}
+    user-id={{ trustee_user_id }}
+    password={{ trustee_password }}
+    trust-id={{ trust_id }}
+    [LoadBalancer]
+    use-octavia=yes
+    subnet-id={{ subnet_id }}
+    floating-network-id={{ public_network_id }}
+    create-monitor=no
+    [BlockStorage]
+    bs-version=v2
+{% endif %}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-controller-manager
+  namespace: {{ namespace }}
+  labels:
+    app: kubernetes
+    role: controller-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubernetes
+      role: controller-manager
+  template:
+    metadata:
+      labels:
+        app: kubernetes
+        role: controller-manager
+    spec:
+      tolerations:
+        - effect: NoExecute
+          operator: Exists
+      restartPolicy: Always
+      automountServiceAccountToken: false
+      containers:
+        - name: kube-controller-manager
+          image: k8s.gcr.io/kube-controller-manager:{{ kube_version }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - kube-controller-manager
+            - --kubeconfig=/srv/kubernetes/kube-controller-manager/kubeconfig
+            - --allocate-node-cidrs=true
+            - --cluster-cidr={{ pod_ip_range }}
+            - --cluster-name={{ namespace }}
+            - --cluster-signing-cert-file=/srv/kubernetes/pki/ca/tls.crt
+            - --cluster-signing-key-file=/srv/kubernetes/pki/ca/tls.key
+            - --controllers=*,bootstrapsigner,tokencleaner
+            - --leader-elect=false
+            - --root-ca-file=/srv/kubernetes/pki/ca/tls.crt
+            - --service-account-private-key-file=/srv/kubernetes/pki/service-account/tls.key
+            - --service-cluster-ip-range={{ service_ip_range }}
+            - --use-service-account-credentials=true
+            {% if cloud_provider_enabled %}
+            - --cloud-provider=external
+            - --external-cloud-volume-plugin=openstack
+            - --cloud-config=/etc/kubernetes/cloud-config
+            {% endif %}
+            - --v=2
+          volumeMounts:
+            - name: ca
+              mountPath: /srv/kubernetes/pki/ca
+            - name: service-account-certs
+              mountPath: /srv/kubernetes/pki/service-account
+            - name: kube-controller-manager-cert
+              mountPath: /srv/kubernetes/pki/kube-controller-manager
+            - name: kubeconfig
+              mountPath: /srv/kubernetes/kube-controller-manager
+            {% if cloud_provider_enabled %}
+            - name: cloud-config
+              mountPath: /etc/kubernetes
+            {% endif %}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              ## This doesn't work after insecure port is removed.
+              port: 10252
+            initialDelaySeconds: 15
+            timeoutSeconds: 15
+            failureThreshold: 3
+      volumes:
+        - name: ca
+          secret:
+            secretName: ca
+        - name: service-account-certs
+          secret:
+            secretName: service-account-certs
+        - name: kube-controller-manager-cert
+          secret:
+            secretName: kube-controller-manager-cert
+        - name: kubeconfig
+          configMap:
+            name: kube-controller-manager-kubeconfig
+        {% if cloud_provider_enabled %}
+        - name: cloud-config
+          configMap:
+            name: cloud-config
+        {% endif %}
