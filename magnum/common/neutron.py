@@ -123,3 +123,12 @@ def get_fixed_subnet_id(context, subnet):
         return get_subnet(context, subnet, source='name', target='id')
     else:
         return subnet
+
+
+def delete_port_by_tags(context, tags):
+    n_client = clients.OpenStackClients(context).neutron()
+    port_filter = {'tags': tags}
+    ports = n_client.list_ports(**port_filter)
+
+    for port in ports.get("ports", []):
+        n_client.delete_port(port.get("id"))
