@@ -95,7 +95,7 @@ class UbuntuK8sTemplateDefinition(template_def.TemplateDefinition):
         return os.path.join(os.path.dirname(os.path.realpath(__file__)),
                             'heat_templates/kubeworkers.yaml')
 
-    def get_env_files(self, cluster_template, cluster):
+    def get_env_files(self, cluster_template, cluster, nodegroup=None):
         return []
 
     def get_params(self, context, cluster_template, cluster, **kwargs):
