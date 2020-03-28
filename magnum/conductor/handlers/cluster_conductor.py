@@ -111,13 +111,13 @@ class Handler(object):
             fields.ClusterStatus.CHECK_COMPLETE,
             fields.ClusterStatus.ADOPT_COMPLETE
         )
-        if cluster.status not in allow_update_status:
-            conductor_utils.notify_about_cluster_operation(
-                context, taxonomy.ACTION_UPDATE, taxonomy.OUTCOME_FAILURE,
-                cluster)
-            operation = _('Updating a cluster when status is '
-                          '"%s"') % cluster.status
-            raise exception.NotSupported(operation=operation)
+        # if cluster.status not in allow_update_status:
+        #     conductor_utils.notify_about_cluster_operation(
+        #         context, taxonomy.ACTION_UPDATE, taxonomy.OUTCOME_FAILURE,
+        #         cluster)
+        #     operation = _('Updating a cluster when status is '
+        #                   '"%s"') % cluster.status
+        #     raise exception.NotSupported(operation=operation)
 
         # Updates will be only reflected to the default worker
         # nodegroup.
