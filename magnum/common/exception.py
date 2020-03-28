@@ -470,3 +470,12 @@ class InvalidClusterTemplateForUpgrade(Conflict):
 
 class ClusterAPIAddressUnavailable(Conflict):
     message = _("Cluster API address is not available yet")
+
+
+class NetworkResourceCreationFailed(Conflict):
+    message = _("Failed to create network resource for cluster "
+                "%(cluster_uuid)s, error: %(msg)s.")
+
+
+class ClusterCreationTimeout(MagnumException):
+    message = _("Timeout waiting for the cluster %(cluster_uuid)s.")

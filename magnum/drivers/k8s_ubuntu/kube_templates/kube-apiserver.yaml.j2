@@ -1,0 +1,114 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: kube-apiserver
+  namespace: {{ namespace }}
+  annotations:
+    loadbalancer.openstack.org/port-id: {{ vip_port_id }}
+    {# The following configurations will affect the commands like kubectl watch or kubectl logs #}
+    loadbalancer.openstack.org/timeout-client-data: "300000"
+    loadbalancer.openstack.org/timeout-member-data: "300000"
+spec:
+  type: LoadBalancer
+  selector:
+    app: kubernetes
+    role: apiserver
+  ports:
+    - protocol: TCP
+      port: 6443
+      targetPort: 6443
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-apiserver
+  namespace: {{ namespace }}
+  labels:
+    app: kubernetes
+    role: apiserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubernetes
+      role: apiserver
+  template:
+    metadata:
+      labels:
+        app: kubernetes
+        role: apiserver
+    spec:
+      affinity:
+        {# Make sure the kube-apiserver pods are running on different nodes. #}
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: role
+                      operator: In
+                      values:
+                        - apiserver
+                topologyKey: kubernetes.io/hostname
+      tolerations:
+        - effect: NoExecute
+          operator: Exists
+      containers:
+        - name: kube-apiserver
+          image: k8s.gcr.io/kube-apiserver:{{ kube_version }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - kube-apiserver
+            - --enable-admission-plugins=NodeRestriction,Initializers
+            - --allow-privileged=true
+            - --anonymous-auth=true
+            - --authorization-mode=Node,RBAC
+            - --client-ca-file=/srv/kubernetes/pki/ca/tls.crt
+            - --enable-bootstrap-token-auth=true
+            - --etcd-servers=http://etcd-cluster.{{ namespace }}.svc:2379
+            - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
+            - --kubelet-certificate-authority=/srv/kubernetes/pki/ca/tls.crt
+            - --kubelet-client-certificate=/srv/kubernetes/pki/kube-apiserver/tls.crt
+            - --kubelet-client-key=/srv/kubernetes/pki/kube-apiserver/tls.key
+            - --service-cluster-ip-range={{ service_ip_range }}
+            - --service-account-key-file=/srv/kubernetes/pki/service-account/tls.crt
+            - --tls-cert-file=/srv/kubernetes/pki/kube-apiserver/tls.crt
+            - --tls-private-key-file=/srv/kubernetes/pki/kube-apiserver/tls.key
+            {% if cloud_provider_enabled %}
+            - --cloud-provider=external
+            {% endif %}
+            - --v=2
+          ports:
+            - name: https
+              containerPort: 6443
+              protocol: TCP
+          volumeMounts:
+            - name: ca
+              mountPath: /srv/kubernetes/pki/ca
+            - name: service-account-certs
+              mountPath: /srv/kubernetes/pki/service-account
+            - name: kube-apiserver-certs
+              mountPath: /srv/kubernetes/pki/kube-apiserver
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 6443
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            timeoutSeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+      restartPolicy: Always
+      volumes:
+        - name: ca
+          secret:
+            secretName: ca
+        - name: service-account-certs
+          secret:
+            secretName: service-account-certs
+        - name: kube-apiserver-certs
+          secret:
+            secretName: kube-apiserver-certs
