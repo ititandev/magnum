@@ -1,38 +1,116 @@
 heat_template_version: 2018-08-31
 
+description: >
+  This template will boot a Kubernetes cluster with one or more
+  minions (as specified by the number_of_minions parameter, which
+  defaults to 1).
+
 parameters:
+
   is_cluster_stack:
     type: boolean
     default: false
+
+  worker_role:
+    type: string
+    default: ""
+
   ssh_key_name:
     type: string
     description: name of ssh key to be provisioned on our server
     default: ""
+
+  ssh_public_key:
+    type: string
+    description: The public ssh key to add in all nodes
+    default: ""
+
   external_network:
     type: string
     description: uuid of a network to use for floating ip addresses
     default: ""
-  floating_ip_enabled:
-    type: boolean
-    default: false
+
   fixed_network:
     type: string
     description: uuid/name of an existing network to use to provision machines
     default: ""
+
+  fixed_network_name:
+    type: string
+    description: name of a private network to use to provision machines
+    default: "private"
+
   fixed_subnet:
     type: string
     description: uuid/name of an existing subnet to use to provision machines
     default: ""
-  server_image:
+
+  minion_image:
     type: string
     description: glance image used to boot the server
-  server_flavor:
+    default: ""
+
+  minion_flavor:
     type: string
-    description: flavor to use when booting the server
-  number_of_workers:
+    description: flavor to use when booting the server for minions
+
+  worker_nodegroup_name:
+    type: string
+    default: ""
+    description: the name of the nodegroup where the node belongs
+
+  dns_nameserver:
+    type: comma_delimited_list
+    description: address of a DNS nameserver reachable in your environment
+    default: 8.8.8.8
+
+  number_of_minions:
     type: number
-    description: how many kubernetes workers to spawn
+    description: how many kubernetes minions to spawn
     default: 1
+
+  network_driver:
+    type: string
+    description: network driver to use for instantiating container networks
+    default: flannel
+
+  registry_enabled:
+    type: boolean
+    description: >
+      Indicates whether the docker registry is enabled.
+    default: false
+
+  insecure_registry_url:
+    type: string
+    description: insecure registry url
+    default: ""
+
+  registry_port:
+    type: number
+    description: port of registry service
+    default: 5000
+
+  volume_driver:
+    type: string
+    description: volume driver to use for container storage
+    default: ""
+
+  docker_volume_size:
+    type: number
+    description: >
+      size of a cinder volume to allocate to docker for container/image
+      storage
+    default: 0
+
+  tls_disabled:
+    type: boolean
+    description: whether or not to disable TLS
+    default: False
+
+
+  floating_ip_enabled:
+    type: boolean
+    default: false
   cluster_id:
     type: string
     description: identifier for the cluster this template is generating
@@ -54,27 +132,71 @@ parameters:
   cluster_dns_service_ip:
     type: string
     description: IP address of the cluster DNS service
-  kubernetes_version:
+
+  kube_version:
     type: string
-    description: Kubernetes version
+    description: version of kubernetes used for kubernetes cluster
+    default: v1.15.7
+
   wait_condition_timeout:
     type: number
     description: >
       Timeout for the Wait Conditions. This param is not passed from anywhere.
     default: 6000
+
+  minions_to_remove:
+    type: comma_delimited_list
+    description: >
+      List of minions to be removed when doing an update. Individual minion may
+      be referenced several ways: (1) The resource name (e.g. ['1', '3']),
+      (2) The private IP address ['10.0.0.4', '10.0.0.6']. Note: the list should
+      be empty when doing an create.
+    default: []
+
   pods_network_cidr:
     type: string
     description: The IP pool/range for the Pod
+
   cloud_provider_enabled:
     type: boolean
-  auth_url:
+    description: Enable or disable the openstack kubernetes cloud provider
+
+  cluster_uuid:
     type: string
+    description: identifier for the cluster this template is generating
+
+  http_proxy:
+    type: string
+    description: http proxy address for docker
+    default: ""
+
+  https_proxy:
+    type: string
+    description: https proxy address for docker
+    default: ""
+
+  no_proxy:
+    type: string
+    description: no proxies for docker
+    default: ""
+
   trustee_user_id:
     type: string
+    description: user id of the trustee
+
   trustee_password:
     type: string
+    description: password of the trustee
+    hidden: true
+
   trust_id:
     type: string
+    description: id of the trust which is used by the trustee
+    hidden: true
+
+  auth_url:
+    type: string
+    description: url for keystone
 
 resources:
   worker_nodes_secgroup:
@@ -89,7 +211,7 @@ resources:
   kube_workers:
     type: OS::Heat::ResourceGroup
     properties:
-      count: {get_param: number_of_workers}
+      count: {get_param: number_of_minions}
       resource_def:
         type: kubeworker.yaml
         properties:
@@ -97,15 +219,15 @@ resources:
             list_join:
               - '-'
               - [{ get_param: 'OS::stack_name' }, 'worker', '%index%']
-          server_image: {get_param: server_image}
-          server_flavor: {get_param: server_flavor}
+          server_image: {get_param: minion_image}
+          server_flavor: {get_param: minion_flavor}
           ssh_key_name: {get_param: ssh_key_name}
           ca_content: {get_param: ca_content}
           cakey_content: {get_param: cakey_content}
           cluster_id: {get_param: cluster_id}
           apiserver_address: {get_param: apiserver_address}
           cluster_dns_service_ip: {get_param: cluster_dns_service_ip}
-          kubernetes_version: {get_param: kubernetes_version}
+          kubernetes_version: {get_param: kube_version}
           bootstrap_token: {get_param: bootstrap_token}
           wait_condition_timeout: {get_param: wait_condition_timeout}
           fixed_network: {get_param: fixed_network}

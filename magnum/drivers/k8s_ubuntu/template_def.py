@@ -9,6 +9,7 @@ from magnum.conductor.handlers.common import cert_manager
 import magnum.conf
 from magnum.drivers.heat import template_def
 from magnum.drivers.heat import k8s_template_def
+from magnum.drivers.heat.k8s_template_def import NodeAddressOutputMapping
 
 CONF = magnum.conf.CONF
 LOG = logging.getLogger(__name__)
@@ -28,7 +29,7 @@ class UbuntuK8sTemplateDefinition(k8s_template_def.K8sTemplateDefinition):
                            cluster_attr='fixed_network')
         self.add_parameter('fixed_subnet',
                            cluster_attr='fixed_subnet')
-        self.add_parameter('server_image',
+        self.add_parameter('minion_image',
                            cluster_template_attr='image_id')
         self.add_parameter('floating_ip_enabled',
                            cluster_template_attr='floating_ip_enabled',
@@ -41,11 +42,11 @@ class UbuntuK8sTemplateDefinition(k8s_template_def.K8sTemplateDefinition):
 
     def add_nodegroup_params(self, cluster, nodegroups=None):
         worker_ng = cluster.default_ng_worker
-        self.add_parameter('number_of_workers',
+        self.add_parameter('number_of_minions',
                            nodegroup_attr='node_count',
                            nodegroup_uuid=worker_ng.uuid,
                            param_class=template_def.NodeGroupParameterMapping)
-        self.add_parameter('server_flavor',
+        self.add_parameter('minion_flavor',
                            nodegroup_attr='flavor_id',
                            nodegroup_uuid=worker_ng.uuid,
                            param_class=template_def.NodeGroupParameterMapping)
