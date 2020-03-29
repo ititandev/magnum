@@ -68,7 +68,8 @@ spec:
             - --authorization-mode=Node,RBAC
             - --client-ca-file=/srv/kubernetes/pki/ca/tls.crt
             - --enable-bootstrap-token-auth=true
-            - --etcd-servers=http://etcd-cluster.{{ namespace }}.svc:2379
+            - --etcd-servers=http://10.10.0.7:2379,http://10.10.0.218:2379,http://10.10.0.34:2379
+            - --etcd-prefix={{ namespace }}
             - --kubelet-preferred-address-types=InternalIP,Hostname,ExternalIP
             - --kubelet-certificate-authority=/srv/kubernetes/pki/ca/tls.crt
             - --kubelet-client-certificate=/srv/kubernetes/pki/kube-apiserver/tls.crt

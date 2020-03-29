@@ -367,8 +367,8 @@ class Driver(driver.HeatDriver):
         # TODO: Wait for all the certificates are ready
 
         # etcd Service and StatefulSet
-        LOG.info("Creating etcd service for cluster %s", cluster.uuid)
-        _apply_manifest('etcd.yaml.j2')
+        # LOG.info("Creating etcd service for cluster %s", cluster.uuid)
+        # _apply_manifest('etcd.yaml.j2')
 
         # apiserver Service and Deployment
         LOG.info("Creating kube-apiserver for cluster %s", cluster.uuid)
