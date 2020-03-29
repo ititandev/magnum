@@ -8,36 +8,13 @@ from magnum.common import clients
 from magnum.conductor.handlers.common import cert_manager
 import magnum.conf
 from magnum.drivers.heat import template_def
+from magnum.drivers.heat import k8s_template_def
 
 CONF = magnum.conf.CONF
 LOG = logging.getLogger(__name__)
 
 
-class ServerAddressOutputMapping(template_def.NodeGroupOutputMapping):
-    public_ip_output_key = None
-    private_ip_output_key = None
-
-    def __init__(self, dummy_arg, nodegroup_attr=None, nodegroup_uuid=None):
-        self.nodegroup_attr = nodegroup_attr
-        self.nodegroup_uuid = nodegroup_uuid
-        self.heat_output = self.public_ip_output_key
-        self.is_stack_param = False
-
-    def set_output(self, stack, cluster_template, cluster):
-        if not cluster_template.floating_ip_enabled:
-            self.heat_output = self.private_ip_output_key
-
-        LOG.debug("Using heat_output: %s", self.heat_output)
-        super(ServerAddressOutputMapping,
-              self).set_output(stack, cluster_template, cluster)
-
-
-class NodeAddressOutputMapping(ServerAddressOutputMapping):
-    public_ip_output_key = 'kube_minions'
-    private_ip_output_key = 'kube_minions_private'
-
-
-class UbuntuK8sTemplateDefinition(template_def.TemplateDefinition):
+class UbuntuK8sTemplateDefinition(k8s_template_def.K8sTemplateDefinition):
     """Kubernetes template for Ubuntu workers."""
 
     def __init__(self, *args, **kwargs):
@@ -62,7 +39,7 @@ class UbuntuK8sTemplateDefinition(template_def.TemplateDefinition):
                            cluster_attr='uuid',
                            param_type=str)
 
-    def add_nodegroup_params(self, cluster):
+    def add_nodegroup_params(self, cluster, nodegroups=None):
         worker_ng = cluster.default_ng_worker
         self.add_parameter('number_of_workers',
                            nodegroup_attr='node_count',
