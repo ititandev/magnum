@@ -53,7 +53,7 @@ class Driver(driver.HeatDriver):
 
         # self.kubectl = kubectl.KubeCtl(
         #     bin="/usr/bin/kubectl",
-        #     global_flags="--kubeconfig %s" % CONF.kubernetes.kubeconfig
+        #     global_flags="--kubeconfig %s" % CONF.mke.admin_kubeconfig
         # )
 
         # The token for kubelet tls bootstraping.
@@ -360,7 +360,7 @@ class Driver(driver.HeatDriver):
         self.kubectl = kubectl.KubeCtl(
             bin="/usr/bin/kubectl",
             global_flags="--kubeconfig %s/%s" %
-                         (CONF.kubernetes.kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
+                         (CONF.mke.admin_kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
         )
         _apply_manifest = functools.partial(self._apply_manifest, params)
 
@@ -489,7 +489,7 @@ class Driver(driver.HeatDriver):
         self.kubectl = kubectl.KubeCtl(
             bin="/usr/bin/kubectl",
             global_flags="--kubeconfig %s/%s" %
-                         (CONF.kubernetes.kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
+                         (CONF.mke.admin_kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
         )
         _delete_manifest = functools.partial(self._delete_manifest, params)
 
@@ -622,7 +622,7 @@ class Driver(driver.HeatDriver):
         self.kubectl = kubectl.KubeCtl(
             bin="/usr/bin/kubectl",
             global_flags="--kubeconfig %s/%s" %
-                         (CONF.kubernetes.kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
+                         (CONF.mke.admin_kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
         )
         if cluster.status == fields.ClusterStatus.CREATE_IN_PROGRESS:
             if cluster.stack_id is None:

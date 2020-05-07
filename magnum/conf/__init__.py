@@ -43,6 +43,7 @@ from magnum.conf import services
 from magnum.conf import trust
 from magnum.conf import utils
 from magnum.conf import x509
+from magnum.conf import mke
 
 CONF = cfg.CONF
 
@@ -74,4 +75,4 @@ trust.register_opts(CONF)
 utils.register_opts(CONF)
 x509.register_opts(CONF)
 profiler.register_opts(CONF)
-kubernetes.register_opts(CONF)
+mke.register_opts(CONF)
