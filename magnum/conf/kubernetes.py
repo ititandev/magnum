@@ -23,8 +23,8 @@ kubernetes_opts = [
                     'the Keystone auth is enabled. Vendors can put their '
                     'specific default policy here'),
     cfg.StrOpt('kubeconfig',
-               default='/etc/magnum/kubernetes/kubeconfig',
-               help='Kubeconfig file used to take with seed cluster.')
+               default='/etc/magnum/kubernetes',
+               help='Kubeconfig directory used to take with seed cluster.')
 ]
 
 
