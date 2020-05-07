@@ -17,7 +17,10 @@ mke_group = cfg.OptGroup(name='mke', title='Options for the managed kubernetes e
 mke_opts = [
     cfg.StrOpt('admin_kubeconfig',
                default='/etc/magnum/admin_kubeconfig',
-               help='Kubeconfig file used to take with admin cluster.')
+               help='Kubeconfig file used to take with admin cluster.'),
+    cfg.StrOpt('default_etcd_server',
+               default='',
+               help='The default etcd_server to use for customer cluster')
 ]
 
 

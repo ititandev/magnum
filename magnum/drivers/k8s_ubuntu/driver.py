@@ -335,8 +335,8 @@ class Driver(driver.HeatDriver):
             "public_network_id": self.public_network_id,
             "cloud_provider_enabled": cloud_provider_enabled,
             "kube_version": cluster.labels.get("kube_tag", "v1.14.3"),
-            "cloud_provider_tag": cluster.labels.get("cloud_provider_tag",
-                                                     "v1.15.0")
+            "cloud_provider_tag": cluster.labels.get("cloud_provider_tag", "v1.15.0"),
+            "etcd_server": cluster.labels.get("etcd_server", CONF.mke.default_etcd_server)
         }
         LOG.info("*** Params: %s" % str(params))
 
