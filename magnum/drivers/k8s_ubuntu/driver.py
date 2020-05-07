@@ -49,10 +49,12 @@ class Driver(driver.HeatDriver):
             lstrip_blocks=True
         )
 
-        self.kubectl = kubectl.KubeCtl(
-            bin="/usr/bin/kubectl",
-            global_flags="--kubeconfig %s" % CONF.kubernetes.kubeconfig
-        )
+        self.kubectl = None
+
+        # self.kubectl = kubectl.KubeCtl(
+        #     bin="/usr/bin/kubectl",
+        #     global_flags="--kubeconfig %s" % CONF.kubernetes.kubeconfig
+        # )
 
         # The token for kubelet tls bootstraping.
         self.bootstrap_token = None
@@ -95,7 +97,7 @@ class Driver(driver.HeatDriver):
         return ''.join(random.SystemRandom().choice(
             string.ascii_lowercase + string.digits) for _ in range(length))
 
-    def _wait_for_apiserver(self, cluster_id, cluster_kubectl, timeout=300):
+    def _wait_for_apiserver(self, cluster, cluster_kubectl, timeout=300):
         """Waits for apiserver up and running.
 
         1. All the pods of the cluster namespace in the seed cluster should be
@@ -107,7 +109,7 @@ class Driver(driver.HeatDriver):
 
         while True:
             ready_pods = 0
-            pods = self.kubectl.get("pods", namespace=cluster_id)
+            pods = self.kubectl.get("pods", namespace=cluster.uuid)
             for pod in pods:
                 if (pod.get("status", {}).get("phase") and
                         pod["status"]["phase"] == "Running"):
@@ -132,7 +134,7 @@ class Driver(driver.HeatDriver):
                     pass
 
             if (time.time() - timeout) > start_time:
-                raise exception.ClusterCreationTimeout(cluster_uuid=cluster_id)
+                raise exception.ClusterCreationTimeout(cluster_uuid=cluster.uuid)
 
             time.sleep(1)
 
@@ -355,6 +357,11 @@ class Driver(driver.HeatDriver):
             kwargs['region_name'] = CONF.trust.trustee_keystone_region_name
         params['auth_url'] = osc.url_for(**kwargs).rstrip('/')
 
+        self.kubectl = kubectl.KubeCtl(
+            bin="/usr/bin/kubectl",
+            global_flags="--kubeconfig %s/%s" %
+                         (CONF.kubernetes.kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
+        )
         _apply_manifest = functools.partial(self._apply_manifest, params)
 
         LOG.info("Creating namespace for cluster %s", cluster.uuid)
@@ -401,7 +408,7 @@ class Driver(driver.HeatDriver):
             "Waiting for all the components up and running for "
             "cluster %s", cluster.uuid
         )
-        self._wait_for_apiserver(cluster.uuid, cluster_kubectl)
+        self._wait_for_apiserver(cluster, cluster_kubectl)
 
         if cloud_provider_enabled:
             # Deploy openstack-cloud-controller-manager
@@ -478,6 +485,12 @@ class Driver(driver.HeatDriver):
             "cloud_provider_tag": "fake",
             "kube_version": "fake",
         }
+
+        self.kubectl = kubectl.KubeCtl(
+            bin="/usr/bin/kubectl",
+            global_flags="--kubeconfig %s/%s" %
+                         (CONF.kubernetes.kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
+        )
         _delete_manifest = functools.partial(self._delete_manifest, params)
 
         LOG.info("Deleting components for cluster %s", cluster.uuid)
@@ -606,6 +619,11 @@ class Driver(driver.HeatDriver):
         :param context: Admin context.
         :param cluster: Cluster object.
         """
+        self.kubectl = kubectl.KubeCtl(
+            bin="/usr/bin/kubectl",
+            global_flags="--kubeconfig %s/%s" %
+                         (CONF.kubernetes.kubeconfig, cluster.labels.get('admin_cluster', 'admin1'))
+        )
         if cluster.status == fields.ClusterStatus.CREATE_IN_PROGRESS:
             if cluster.stack_id is None:
                 return
