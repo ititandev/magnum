@@ -62,7 +62,9 @@ spec:
           imagePullPolicy: IfNotPresent
           command:
             - kube-apiserver
-            - --enable-admission-plugins=NodeRestriction,Initializers
+            - --enable-admission-plugins=NodeRestriction
+            - --insecure-port=8080
+            - --insecure-bind-address=0.0.0.0
             - --allow-privileged=true
             - --anonymous-auth=true
             - --authorization-mode=Node,RBAC

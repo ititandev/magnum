@@ -35,32 +35,20 @@ from magnum.objects import fields
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
-TEMPLATES_DIR = (os.path.dirname(os.path.realpath(__file__)) +
-                 '/kube_templates/')
+TEMPLATES_DIR = (os.path.dirname(os.path.realpath(__file__)) + '/kube_templates/')
 
 
 class Driver(driver.HeatDriver):
     def __init__(self, *kargs, **kwargs):
-        template_loader = jinja2.FileSystemLoader(
-            searchpath=os.path.dirname(TEMPLATES_DIR)
-        )
+        template_loader = jinja2.FileSystemLoader(searchpath=os.path.dirname(TEMPLATES_DIR))
         self.jinja_env = jinja2.Environment(
             loader=template_loader, autoescape=True, trim_blocks=True,
             lstrip_blocks=True
         )
 
         self.kubectl = None
-
-        # self.kubectl = kubectl.KubeCtl(
-        #     bin="/usr/bin/kubectl",
-        #     global_flags="--kubeconfig %s" % CONF.mke.admin_kubeconfig
-        # )
-
-        # The token for kubelet tls bootstraping.
         self.bootstrap_token = None
-        # The VIP address of kube-apiserver load balancer.
         self.apiserver_address = None
-
         self.public_network_id = None
 
     def get_template_definition(self):
@@ -164,8 +152,7 @@ class Driver(driver.HeatDriver):
             context=context
         )
         admin_cert_encoded = base64.b64encode(admin_cert.get_certificate()).decode()
-        admin_key_encoded = base64.b64encode(
-            admin_cert.get_decrypted_private_key()).decode()
+        admin_key_encoded = base64.b64encode(admin_cert.get_decrypted_private_key()).decode()
 
         split_ret = netutils.urlsplit(cluster.api_address)
         external_apiserver_address = split_ret.netloc.split(":")[0]
@@ -278,7 +265,7 @@ class Driver(driver.HeatDriver):
         )
 
         cluser_service_ip_range = cluster.labels.get(
-            'service_cluster_ip_range', '10.97.0.0/16'
+            'service_cluster_ip_range', '10.96.0.0/12'
         )
         if cluster_template.network_driver == 'flannel':
             cluser_pod_ip_range = cluster.labels.get(
@@ -334,7 +321,7 @@ class Driver(driver.HeatDriver):
             "subnet_id": cluster_template.fixed_subnet,
             "public_network_id": self.public_network_id,
             "cloud_provider_enabled": cloud_provider_enabled,
-            "kube_version": cluster.labels.get("kube_tag", "v1.14.3"),
+            "kube_version": cluster.labels.get("kube_tag", "v1.15.11"),
             "cloud_provider_tag": cluster.labels.get("cloud_provider_tag", "v1.15.0"),
             "etcd_server": cluster.labels.get("etcd_server", CONF.mke.default_etcd_server)
         }
@@ -554,7 +541,7 @@ class Driver(driver.HeatDriver):
             )
 
         cluser_service_ip_range = cluster.labels.get(
-            'service_cluster_ip_range', '10.97.0.0/16'
+            'service_cluster_ip_range', '10.96.0.0/12'
         )
         service_ip_net = netaddr.IPNetwork(cluser_service_ip_range)
         cluster_dns_service_ip = service_ip_net[10]
