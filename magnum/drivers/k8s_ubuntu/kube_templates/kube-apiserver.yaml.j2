@@ -18,6 +18,11 @@ spec:
     - protocol: TCP
       port: 6443
       targetPort: 6443
+      name: https
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      name: http
 
 ---
 apiVersion: apps/v1
