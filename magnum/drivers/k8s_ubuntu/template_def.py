@@ -92,8 +92,7 @@ class UbuntuK8sTemplateDefinition(template_def.TemplateDefinition):
 
     @property
     def template_path(self):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                            'heat_templates/kubeworkers.yaml')
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), 'heat_templates/kubeworkers.yaml')
 
     def get_env_files(self, cluster_template, cluster, nodegroup=None):
         return []
@@ -106,12 +105,10 @@ class UbuntuK8sTemplateDefinition(template_def.TemplateDefinition):
 
         extra_params["bootstrap_token"] = self.bootstrap_token
         extra_params["apiserver_address"] = self.apiserver_address
-        extra_params['kubernetes_version'] = cluster.labels.get(
-            'kube_tag', 'v1.13.2').lstrip("v")
+        extra_params['kubernetes_version'] = cluster.labels.get('kube_tag', 'v1.13.2').lstrip("v")
         extra_params['external_network'] = self.public_network_id
 
-        cluser_service_ip_range = cluster.labels.get(
-            'service_cluster_ip_range', '10.96.0.0/12')
+        cluser_service_ip_range = cluster.labels.get('service_cluster_ip_range', '10.96.0.0/12')
         service_ip_net = netaddr.IPNetwork(cluser_service_ip_range)
         extra_params['cluster_dns_service_ip'] = service_ip_net[10]
 
