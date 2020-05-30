@@ -8,7 +8,7 @@ BOOTSTRAP_CONFIG=/var/lib/kubelet/bootstrap-kubeconfig
 CA_FILE=/var/lib/kubelet/pki/ca.crt
 CAKEY_FILE=/var/lib/kubelet/pki/ca.key
 KUBELET_CONFIG=/var/lib/kubelet/config.yaml
-DOCKER_VERSION=5:19.03.10~3-0~ubuntu-xenial
+DOCKER_VERSION=5:18.09.9~3-0~ubuntu-xenial
 CLOUD_ENABLED=${CLOUD_PROVIDER_ENABLED}
 
 echo "Installing docker..."
