@@ -322,7 +322,7 @@ class Driver(driver.HeatDriver):
             "cloud_provider_tag": cluster.labels.get("cloud_provider_tag", "v1.15.0"),
             "etcd_server": cluster.labels.get("etcd_server", CONF.mke.default_etcd_server)
         }
-        LOG.info("*** Params: %s" % str(params))
+        # LOG.info("*** Params: %s" % str(params))
 
         # Keystone related info.
         osc = clients.OpenStackClients(context)
