@@ -105,10 +105,7 @@ class Driver(driver.HeatDriver):
 
             if len(pods) == ready_pods:
                 try:
-                    namespaces = cluster_kubectl.get("namespaces",
-                                                     print_error=False)
-                    if len(namespaces) != 3:
-                        raise Exception('Cluster creation failed.')
+                    namespaces = cluster_kubectl.get("namespaces", print_error=False)
 
                     ready_ns = 0
                     for ns in namespaces:
@@ -116,7 +113,7 @@ class Driver(driver.HeatDriver):
                                 ns["status"]["phase"] == "Active"):
                             ready_ns += 1
 
-                    if ready_ns == 3:
+                    if ready_ns == len(namespaces):
                         break
                 except Exception:
                     pass
@@ -550,7 +547,7 @@ class Driver(driver.HeatDriver):
             'cluster_id': cluster.uuid,
             'pod_ip_range': cluser_pod_ip_range,
             'cluster_dns_service_ip': cluster_dns_service_ip,
-            "kube_version": cluster.labels.get("kube_tag", "v1.14.3"),
+            "kube_version": cluster.labels.get("kube_tag", "v1.15.11"),
         }
 
         LOG.info(
