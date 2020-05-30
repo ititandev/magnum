@@ -105,7 +105,7 @@ class UbuntuK8sTemplateDefinition(template_def.TemplateDefinition):
 
         extra_params["bootstrap_token"] = self.bootstrap_token
         extra_params["apiserver_address"] = self.apiserver_address
-        extra_params['kubernetes_version'] = cluster.labels.get('kube_tag', 'v1.13.2').lstrip("v")
+        extra_params['kubernetes_version'] = cluster.labels.get('kube_tag', 'v1.15.11').lstrip("v")
         extra_params['external_network'] = self.public_network_id
 
         cluser_service_ip_range = cluster.labels.get('service_cluster_ip_range', '10.96.0.0/12')

@@ -8,7 +8,7 @@ BOOTSTRAP_CONFIG=/var/lib/kubelet/bootstrap-kubeconfig
 CA_FILE=/var/lib/kubelet/pki/ca.crt
 CAKEY_FILE=/var/lib/kubelet/pki/ca.key
 KUBELET_CONFIG=/var/lib/kubelet/config.yaml
-DOCKER_VERSION=17.03.2~ce-0~ubuntu-xenial
+DOCKER_VERSION=5:19.03.10~3-0~ubuntu-xenial
 CLOUD_ENABLED=${CLOUD_PROVIDER_ENABLED}
 
 echo "Installing docker..."
@@ -24,7 +24,7 @@ echo "Installing kubelet..."
 curl -sSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 add-apt-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
 apt-get update -qq
-apt install -y kubernetes-cni=0.6.0-00 kubelet=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00
+apt install -y kubelet=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00
 echo "Finished to install kubelet"
 
 # Create CA files
