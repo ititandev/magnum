@@ -36,7 +36,7 @@ metadata:
     app: kubernetes
     role: scheduler
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: kubernetes
@@ -59,7 +59,7 @@ spec:
           command:
             - kube-scheduler
             - --kubeconfig=/srv/kubernetes/kube-scheduler/kubeconfig
-            - --leader-elect=false
+            - --leader-elect=true
             - --v=2
           volumeMounts:
             - name: ca

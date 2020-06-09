@@ -59,7 +59,7 @@ metadata:
     app: kubernetes
     role: controller-manager
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: kubernetes
@@ -88,7 +88,7 @@ spec:
             - --cluster-signing-cert-file=/srv/kubernetes/pki/ca/tls.crt
             - --cluster-signing-key-file=/srv/kubernetes/pki/ca/tls.key
             - --controllers=*,bootstrapsigner,tokencleaner
-            - --leader-elect=false
+            - --leader-elect=true
             - --root-ca-file=/srv/kubernetes/pki/ca/tls.crt
             - --service-account-private-key-file=/srv/kubernetes/pki/service-account/tls.key
             - --service-cluster-ip-range={{ service_ip_range }}
