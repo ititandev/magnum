@@ -6,14 +6,16 @@ metadata:
   namespace: {{ namespace }}
   annotations:
     loadbalancer.openstack.org/port-id: {{ vip_port_id }}
-    {# The following configurations will affect the commands like kubectl watch or kubectl logs #}
     loadbalancer.openstack.org/timeout-client-data: "300000"
     loadbalancer.openstack.org/timeout-member-data: "300000"
+  labels:
+    component: kube-apiserver
+    tier: control-plane
 spec:
   type: LoadBalancer
   selector:
-    app: kubernetes
-    role: apiserver
+    component: kube-apiserver
+    tier: control-plane
   ports:
     - protocol: TCP
       port: 6443
@@ -23,7 +25,6 @@ spec:
       port: 8080
       targetPort: 8080
       name: http
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,19 +32,19 @@ metadata:
   name: kube-apiserver
   namespace: {{ namespace }}
   labels:
-    app: kubernetes
-    role: apiserver
+    component: kube-apiserver
+    tier: control-plane
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: kubernetes
-      role: apiserver
+      component: kube-apiserver
+      tier: control-plane
   template:
     metadata:
       labels:
-        app: kubernetes
-        role: apiserver
+        component: kube-apiserver
+        tier: control-plane
     spec:
       affinity:
         {# Make sure the kube-apiserver pods are running on different nodes. #}
@@ -120,3 +121,68 @@ spec:
         - name: kube-apiserver-certs
           secret:
             secretName: kube-apiserver-certs
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prometheus-k8s
+  namespace: {{ namespace }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - endpoints
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prometheus-k8s
+  namespace: {{ namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: prometheus-k8s
+subjects:
+- kind: ServiceAccount
+  name: prometheus-k8s
+  namespace: monitoring
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: apiserver
+  name: kube-apiserver
+  namespace: {{ namespace }}
+spec:
+  endpoints:
+  - interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: apiserver_admission_controller_admission_latencies_seconds_.*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: apiserver_admission_step_admission_latencies_seconds_.*
+      sourceLabels:
+      - __name__
+    port: http
+    scheme: http
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - {{ namespace }}
+  selector:
+    matchLabels:
+      component: kube-apiserver
+      tier: control-plane
