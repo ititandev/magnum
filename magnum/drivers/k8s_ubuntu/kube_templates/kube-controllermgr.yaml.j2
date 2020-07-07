@@ -56,19 +56,19 @@ metadata:
   name: kube-controller-manager
   namespace: {{ namespace }}
   labels:
-    app: kubernetes
-    role: controller-manager
+    component: kube-controller-manager
+    tier: control-plane
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: kubernetes
-      role: controller-manager
+      component: kube-controller-manager
+      tier: control-plane
   template:
     metadata:
       labels:
-        app: kubernetes
-        role: controller-manager
+        component: kube-controller-manager
+        tier: control-plane
     spec:
       tolerations:
         - effect: NoExecute
@@ -138,3 +138,21 @@ spec:
           configMap:
             name: cloud-config
         {% endif %}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: kube-controller-manager
+  name: kube-controller-manager
+  namespace: {{ namespace }}
+spec:
+  clusterIP: None
+  ports:
+  - name: http-metrics
+    port: 10252
+    protocol: TCP
+    targetPort: 10252
+  selector:
+    component: kube-controller-manager
+  type: ClusterIP
