@@ -58,6 +58,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command:
             - kube-scheduler
+            - --bind-address=0.0.0.0
             - --kubeconfig=/srv/kubernetes/kube-scheduler/kubeconfig
             - --leader-elect=true
             - --v=2
@@ -71,7 +72,6 @@ spec:
           livenessProbe:
             failureThreshold: 8
             httpGet:
-              host: 127.0.0.1
               path: /healthz
               port: 10251
               scheme: HTTP
