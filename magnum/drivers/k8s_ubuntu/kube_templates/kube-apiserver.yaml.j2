@@ -68,6 +68,7 @@ spec:
           imagePullPolicy: IfNotPresent
           command:
             - kube-apiserver
+            - --advertise-address={{ vip_external_ip }}
             - --enable-admission-plugins=NodeRestriction
             - --insecure-port=8080
             - --insecure-bind-address=0.0.0.0
