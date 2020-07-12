@@ -47,18 +47,19 @@ spec:
         tier: control-plane
     spec:
       affinity:
-        {# Make sure the kube-apiserver pods are running on different nodes. #}
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
             - weight: 100
               podAffinityTerm:
                 labelSelector:
                   matchExpressions:
-                    - key: role
+                    - key: component
                       operator: In
                       values:
-                        - apiserver
+                        - kube-apiserver
                 topologyKey: kubernetes.io/hostname
+                namespaces:
+                - {{ namespace }}
       tolerations:
         - effect: NoExecute
           operator: Exists
