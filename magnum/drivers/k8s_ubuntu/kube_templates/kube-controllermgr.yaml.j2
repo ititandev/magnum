@@ -70,6 +70,20 @@ spec:
         component: kube-controller-manager
         tier: control-plane
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: component
+                      operator: In
+                      values:
+                        - kube-controller-manager
+                topologyKey: kubernetes.io/hostname
+                namespaces:
+                - {{ namespace }}
       tolerations:
         - effect: NoExecute
           operator: Exists

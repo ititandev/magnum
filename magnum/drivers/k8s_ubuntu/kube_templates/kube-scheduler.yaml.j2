@@ -49,6 +49,20 @@ spec:
     spec:
       automountServiceAccountToken: false
       restartPolicy: Always
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: component
+                      operator: In
+                      values:
+                        - kube-scheduler
+                topologyKey: kubernetes.io/hostname
+                namespaces:
+                - {{ namespace }}
       tolerations:
         - effect: NoExecute
           operator: Exists
