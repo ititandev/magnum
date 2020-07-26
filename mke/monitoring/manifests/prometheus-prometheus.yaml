@@ -6,6 +6,10 @@ metadata:
   name: k8s
   namespace: monitoring
 spec:
+  retention: 2d
+  additionalScrapeConfigs:
+    key: prometheus-additional.yaml
+    name: additional-scrape-configs
   alerting:
     alertmanagers:
     - name: alertmanager-main
