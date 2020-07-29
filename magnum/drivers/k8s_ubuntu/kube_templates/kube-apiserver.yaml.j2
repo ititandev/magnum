@@ -65,6 +65,13 @@ spec:
           operator: Exists
       containers:
         - name: kube-apiserver
+          resources:
+            requests:
+              memory: "250Mi"
+              cpu: "200m"
+            limits:
+              memory: "400Mi"
+              cpu: "400m"
           image: k8s.gcr.io/kube-apiserver:{{ kube_version }}
           imagePullPolicy: IfNotPresent
           command:
@@ -123,3 +130,17 @@ spec:
         - name: kube-apiserver-certs
           secret:
             secretName: kube-apiserver-certs
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kube-apiserver
+  namespace: {{ namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kube-apiserver
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
