@@ -17,7 +17,7 @@
   "gnetId": 12006,
   "graphTooltip": 0,
   "id": 26,
-  "iteration": 1595154152956,
+  "iteration": 1598911736369,
   "links": [],
   "panels": [
     {
@@ -136,114 +136,6 @@
         "y": 0
       },
       "hiddenSeries": false,
-      "id": 9,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": true,
-      "linewidth": 1,
-      "nullPointMode": "null",
-      "options": {
-        "dataLinks": []
-      },
-      "percentage": false,
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum without(instance, pod) (rate(scheduler_e2e_scheduling_duration_seconds_bucket{job=\"kube-scheduler\", namespace=\"$cluster\"}[$interval])))",
-          "interval": "",
-          "legendFormat": "p95",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.99, sum without(instance, pod) (rate(scheduler_e2e_scheduling_duration_seconds_bucket{job=\"kube-scheduler\", namespace=\"$cluster\"}[$interval])))",
-          "interval": "",
-          "legendFormat": "p99",
-          "refId": "B"
-        },
-        {
-          "expr": "histogram_quantile(0.5, sum without(instance, pod) (rate(scheduler_e2e_scheduling_duration_seconds_bucket{job=\"kube-scheduler\", namespace=\"$cluster\"}[$interval])))",
-          "interval": "",
-          "legendFormat": "p50 ",
-          "refId": "C"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Scheduler e2e duration",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "decimals": null,
-          "format": "s",
-          "label": "latency",
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": false,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": "$datasource",
-      "description": "95th percentile request latency for Kubernetes apiserver component",
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 10,
-        "w": 12,
-        "x": 0,
-        "y": 10
-      },
-      "hiddenSeries": false,
       "id": 2,
       "legend": {
         "avg": false,
@@ -329,6 +221,114 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "$datasource",
+      "description": "95th percentile request latency for Kubernetes apiserver component",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "hiddenSeries": false,
+      "id": 9,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "dataLinks": []
+      },
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum without(instance, pod) (rate(scheduler_e2e_scheduling_duration_seconds_bucket{job=\"kube-scheduler\", namespace=\"$cluster\"}[$interval])))",
+          "interval": "",
+          "legendFormat": "p95",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum without(instance, pod) (rate(scheduler_e2e_scheduling_duration_seconds_bucket{job=\"kube-scheduler\", namespace=\"$cluster\"}[$interval])))",
+          "interval": "",
+          "legendFormat": "p99",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.5, sum without(instance, pod) (rate(scheduler_e2e_scheduling_duration_seconds_bucket{job=\"kube-scheduler\", namespace=\"$cluster\"}[$interval])))",
+          "interval": "",
+          "legendFormat": "p50 ",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Scheduler e2e duration",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "decimals": null,
+          "format": "s",
+          "label": "latency",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "refresh": "30s",
@@ -359,9 +359,9 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
-          "text": "6783d170-9a7c-485e-9dec-e7e3b43f746b",
-          "value": "6783d170-9a7c-485e-9dec-e7e3b43f746b"
+          "selected": false,
+          "text": "default",
+          "value": "default"
         },
         "datasource": "prometheus",
         "definition": "label_values(apiserver_request_total, namespace)",
@@ -442,7 +442,7 @@
     ]
   },
   "timezone": "",
-  "title": "Kubernetes benchmark",
+  "title": "Kubernetes Benchmark",
   "uid": "R6abPf9Zz",
-  "version": 23
+  "version": 25
 }
