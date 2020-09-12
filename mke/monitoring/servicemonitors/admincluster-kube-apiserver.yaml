@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+    name: admincluster-kube-apiserver
+    namespace: admincluster
+    labels:
+        app: admincluster-kube-apiserver
+subsets:
+- addresses:
+  - ip: 10.1.7.151
+    nodeName: admin2-jtffutkmdtem-master-0
+  - ip: 10.1.7.134
+    nodeName: admin2-jtffutkmdtem-master-1
+  - ip: 10.1.7.196
+    nodeName: admin2-jtffutkmdtem-master-2
+  ports:
+  - name: https
+    port: 6443
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admincluster-kube-apiserver
+  namespace: admincluster
+  labels:
+    component: apiserver
+    provider: kubernetes
+spec:
+  externalName: admincluster-kube-apiserver
+  type: ExternalName
+  ports:
+  - name: metrics
+    port: 6443
+    protocol: TCP
+    targetPort: 6443
+  sessionAffinity: None
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    k8s-app: apiserver
+  name: kube-apiserver
+  namespace: admincluster
+spec:
+  endpoints:
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 30s
+    metricRelabelings:
+    - action: drop
+      regex: etcd_(debugging|disk|request|server).*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: apiserver_admission_controller_admission_latencies_seconds_.*
+      sourceLabels:
+      - __name__
+    - action: drop
+      regex: apiserver_admission_step_admission_latencies_seconds_.*
+      sourceLabels:
+      - __name__
+    port: https
+    scheme: https
+    tlsConfig:
+      ca:
+        secret:
+          name: tlsconfig
+          key: ca
+      keySecret:
+        name: tlsconfig
+        key: key
+      cert:
+        secret:
+          name: tlsconfig
+          key: cert
+      serverName: kubernetes
+  jobLabel: component
+  namespaceSelector:
+    matchNames:
+    - admincluster
+  selector:
+    matchLabels:
+      component: apiserver
+      provider: kubernetes
