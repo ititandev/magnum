@@ -12,7 +12,7 @@ metadata:
     component: kube-apiserver
     tier: control-plane
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     component: kube-apiserver
     tier: control-plane
@@ -21,6 +21,7 @@ spec:
       port: 6443
       targetPort: 6443
       name: https
+      nodePort: 30443
     - protocol: TCP
       port: 8080
       targetPort: 8080

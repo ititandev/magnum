@@ -85,7 +85,7 @@ class Driver(driver.HeatDriver):
         return ''.join(random.SystemRandom().choice(
             string.ascii_lowercase + string.digits) for _ in range(length))
 
-    def _wait_for_apiserver(self, cluster, cluster_kubectl, timeout=300):
+    def _wait_for_apiserver(self, cluster, cluster_kubectl, timeout=3600):
         """Waits for apiserver up and running.
 
         1. All the pods of the cluster namespace in the seed cluster should be
